@@ -1,5 +1,5 @@
 kind = "web"
-previewPath = "/listing-draft/"
+previewPath = "/"
 title = "Listing Draft"
 description = "A real estate listing workspace for agents to enter property details in guided steps, track completion, and automatically save and resume draft progress."
 version = "1.0.0"
@@ -8,7 +8,7 @@ router = "path"
 
 [[services]]
 name = "web"
-paths = [ "/listing-draft/" ]
+paths = [ "/" ]
 localPort = 26164
 
 [services.development]
@@ -25,4 +25,4 @@ to = "/index.html"
 
 [services.env]
 PORT = "26164"
-BASE_PATH = "/listing-draft/"
+BASE_PATH = "/"

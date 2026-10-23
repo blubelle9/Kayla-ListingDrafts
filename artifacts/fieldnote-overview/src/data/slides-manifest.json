@@ -1,0 +1,66 @@
+[
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d1",
+    "position": 1,
+    "filepath": "src/pages/slides/Fieldnote.tsx",
+    "title": "Fieldnote",
+    "description": "A calmer way to build a real-estate listing, one saved step at a time.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d2",
+    "position": 2,
+    "filepath": "src/pages/slides/Stages.tsx",
+    "title": "A listing takes shape in stages",
+    "description": "The high-level path from property facts to a reviewed draft.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d3",
+    "position": 3,
+    "filepath": "src/pages/slides/Flow.tsx",
+    "title": "Four steps, from basics to review",
+    "description": "Fieldnote's four guided listing steps.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d4",
+    "position": 4,
+    "filepath": "src/pages/slides/Essentials.tsx",
+    "title": "Start with the essentials",
+    "description": "Address, listing type, property type, and asking price.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d5",
+    "position": 5,
+    "filepath": "src/pages/slides/Details.tsx",
+    "title": "Give buyers the useful details",
+    "description": "Measurements, property features, and parking information.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d6",
+    "position": 6,
+    "filepath": "src/pages/slides/ListingCopy.tsx",
+    "title": "Turn property facts into listing copy",
+    "description": "A headline, description, and final listing review.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d7",
+    "position": 7,
+    "filepath": "src/pages/slides/Progress.tsx",
+    "title": "Progress saves itself",
+    "description": "Visible completion, automatic local saving, and resume support.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "91c9737f-4a22-4d72-b138-0a1d1a9f01d8",
+    "position": 8,
+    "filepath": "src/pages/slides/Ready.tsx",
+    "title": "Ready is a checkpoint, not a publish button",
+    "description": "What the ready checkpoint does—and does not—do.",
+    "speakerNotes": ""
+  }
+]

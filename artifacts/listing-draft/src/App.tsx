@@ -51,6 +51,12 @@ function ListingWorkspace() {
   const [toast, setToast] = useState('');
 
   useEffect(() => {
+    if (location === '/listing-draft' || location === '/listing-draft/') {
+      setLocation('/', { replace: true });
+    }
+  }, [location, setLocation]);
+
+  useEffect(() => {
     const timer = window.setTimeout(() => {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts)); setSaveState('saved'); }
       catch { setSaveState('error'); }

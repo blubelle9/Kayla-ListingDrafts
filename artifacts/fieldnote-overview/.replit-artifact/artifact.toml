@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/fieldnote-overview/"
+title = "Fieldnote Overview"
+description = "An eight-slide product overview of Fieldnote, a real-estate listing draft workspace with guided steps, automatic local saving, visible completion progress, and a clear boundary between draft readiness and publishing."
+version = "1.0.0"
+id = "artifacts/fieldnote-overview"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/fieldnote-overview/" ]
+localPort = 23962
+
+[services.development]
+run = "pnpm --filter @workspace/fieldnote-overview run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/fieldnote-overview", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/fieldnote-overview/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23962"
+BASE_PATH = "/fieldnote-overview/"

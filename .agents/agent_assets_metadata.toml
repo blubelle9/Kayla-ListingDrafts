@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "4jOT0mi-XIlBekXhe3uiH"
+uri = "file://.local/outputs/Fieldnote-Overview.pptx"
+type = "slides"
+title = "Fieldnote Overview (PPTX)"
+description = "PowerPoint export of the approved 8-slide Fieldnote project deck."
+logical_id = "8c7baa7b-337e-4dbd-a113-e7ebd38878bf"
+content_hash = "sha256:9aebab827203cc07c3a2b25c012e0894209d59c2c56e8858f8e48d1581e4e462"
+size = 8070278
+mtime_ms = 1792798633085
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:2615d343-27bb-4c33-9d30-679c600ac2f4/8c7baa7b-337e-4dbd-a113-e7ebd38878bf/cb11cc8f-1345-4b60-b9c1-af4d471f94dc"
+storage_version_token = "1792798633753267"
+content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"

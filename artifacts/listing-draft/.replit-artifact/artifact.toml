@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/listing-draft/"
+title = "Listing Draft"
+description = "A real estate listing workspace for agents to enter property details in guided steps, track completion, and automatically save and resume draft progress."
+version = "1.0.0"
+id = "artifacts/listing-draft"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/listing-draft/" ]
+localPort = 26164
+
+[services.development]
+run = "pnpm --filter @workspace/listing-draft run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/listing-draft", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/listing-draft/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26164"
+BASE_PATH = "/listing-draft/"

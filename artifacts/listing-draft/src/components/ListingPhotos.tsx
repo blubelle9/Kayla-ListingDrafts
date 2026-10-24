@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ImagePlus, LoaderCircle, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ImagePlus, LoaderCircle, Star, X } from 'lucide-react';
 import { deletePhotoBlob, getPhotoBlob, savePhotoBlob } from '../lib/photoStorage';
 
 export type ListingPhoto = {
@@ -31,33 +31,41 @@ export function PhotoGallery({
   photos,
   onRemove,
   removingPhotoId,
+  onReorder,
+  coverPhotoId,
+  onSelectCover,
   busy = false,
 }: {
   draftId: string;
   photos: ListingPhoto[];
   onRemove?: (photo: ListingPhoto) => void;
   removingPhotoId?: string | null;
+  onReorder?: (photos: ListingPhoto[]) => void;
+  coverPhotoId?: string | null;
+  onSelectCover?: (photo: ListingPhoto) => void;
   busy?: boolean;
 }) {
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
+  const photoIds = photos.map((photo) => photo.id);
+  const photoIdsKey = [...photoIds].sort().join('\0');
 
   useEffect(() => {
     let cancelled = false;
     const objectUrls: string[] = [];
     setPreviews({});
-    setLoaded(photos.length === 0);
+    setLoaded(photoIds.length === 0);
 
     const loadPreviews = async () => {
-      const entries = await Promise.all(photos.map(async (photo) => {
+      const entries = await Promise.all(photoIds.map(async (photoId) => {
         try {
-          const blob = await getPhotoBlob(draftId, photo.id);
-          if (!blob) return [photo.id, ''] as const;
+          const blob = await getPhotoBlob(draftId, photoId);
+          if (!blob) return [photoId, ''] as const;
           const url = URL.createObjectURL(blob);
           objectUrls.push(url);
-          return [photo.id, url] as const;
+          return [photoId, url] as const;
         } catch {
-          return [photo.id, ''] as const;
+          return [photoId, ''] as const;
         }
       }));
 
@@ -69,19 +77,19 @@ export function PhotoGallery({
       setLoaded(true);
     };
 
-    if (photos.length > 0) void loadPreviews();
+    if (photoIds.length > 0) void loadPreviews();
     return () => {
       cancelled = true;
       objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [draftId, photos]);
+  }, [draftId, photoIdsKey]);
 
   if (photos.length === 0) return null;
 
   return (
     <div className="photo-grid" role="list" aria-label="Uploaded property photos">
-      {photos.map((photo) => (
-        <figure className="photo-card" role="listitem" key={photo.id}>
+      {photos.map((photo, index) => (
+        <figure className={`photo-card ${coverPhotoId === photo.id ? 'is-cover' : ''}`} role="listitem" key={photo.id} data-testid={`photo-card-${photo.id}`}>
           <div className="photo-preview">
             {previews[photo.id] ? (
               <img src={previews[photo.id]} alt={photo.name} />
@@ -91,6 +99,9 @@ export function PhotoGallery({
                 <span>{loaded ? 'Preview unavailable' : 'Loading preview…'}</span>
               </div>
             )}
+            {coverPhotoId === photo.id && (
+              <span className="photo-cover-badge"><Star size={12} fill="currentColor" /> Cover photo</span>
+            )}
             {onRemove && (
               <button
                 type="button"
@@ -99,6 +110,7 @@ export function PhotoGallery({
                 title={`Remove ${photo.name}`}
                 disabled={busy || !!removingPhotoId}
                 onClick={() => onRemove(photo)}
+                data-testid={`button-remove-photo-${photo.id}`}
               >
                 {removingPhotoId === photo.id ? <LoaderCircle size={14} className="photo-spinner" /> : <X size={14} />}
               </button>
@@ -108,6 +120,57 @@ export function PhotoGallery({
             <span title={photo.name}>{photo.name}</span>
             <small>{formatSize(photo.size)}</small>
           </figcaption>
+          {(onReorder || onSelectCover) && (
+            <div className="photo-actions">
+              {onSelectCover && (
+                <button
+                  type="button"
+                  className={`photo-cover-btn ${coverPhotoId === photo.id ? 'selected' : ''}`}
+                  aria-pressed={coverPhotoId === photo.id}
+                  disabled={busy || !!removingPhotoId || coverPhotoId === photo.id}
+                  onClick={() => onSelectCover(photo)}
+                  data-testid={`button-set-cover-${photo.id}`}
+                >
+                  <Star size={13} fill={coverPhotoId === photo.id ? 'currentColor' : 'none'} />
+                  {coverPhotoId === photo.id ? 'Cover photo' : 'Set as cover'}
+                </button>
+              )}
+              {onReorder && (
+                <div className="photo-order-controls" aria-label={`Reorder ${photo.name}`}>
+                  <button
+                    type="button"
+                    className="photo-order-btn"
+                    aria-label={`Move ${photo.name} earlier`}
+                    title="Move earlier"
+                    disabled={busy || !!removingPhotoId || index === 0}
+                    onClick={() => {
+                      const reordered = [...photos];
+                      [reordered[index - 1], reordered[index]] = [reordered[index], reordered[index - 1]];
+                      onReorder(reordered);
+                    }}
+                    data-testid={`button-move-photo-up-${photo.id}`}
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="photo-order-btn"
+                    aria-label={`Move ${photo.name} later`}
+                    title="Move later"
+                    disabled={busy || !!removingPhotoId || index === photos.length - 1}
+                    onClick={() => {
+                      const reordered = [...photos];
+                      [reordered[index], reordered[index + 1]] = [reordered[index + 1], reordered[index]];
+                      onReorder(reordered);
+                    }}
+                    data-testid={`button-move-photo-down-${photo.id}`}
+                  >
+                    <ArrowDown size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </figure>
       ))}
     </div>
@@ -118,11 +181,15 @@ export function ListingPhotoUploadArea({
   draftId,
   photos,
   onChange,
+  coverPhotoId,
+  onCoverChange,
   onToast,
 }: {
   draftId: string;
   photos: ListingPhoto[];
   onChange: (photos: ListingPhoto[]) => void;
+  coverPhotoId: string | null;
+  onCoverChange: (photoId: string | null) => void;
   onToast: (message: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -176,7 +243,10 @@ export function ListingPhotoUploadArea({
         }
       }
 
-      if (added.length > 0) onChange([...photos, ...added]);
+      if (added.length > 0) {
+        onChange([...photos, ...added]);
+        if (!coverPhotoId) onCoverChange(added[0].id);
+      }
 
       const issues: string[] = [];
       if (unsupportedCount > 0) issues.push(`${unsupportedCount} unsupported file${unsupportedCount === 1 ? '' : 's'}`);
@@ -199,7 +269,9 @@ export function ListingPhotoUploadArea({
     setRemovingPhotoId(photo.id);
     try {
       await deletePhotoBlob(draftId, photo.id);
-      onChange(photos.filter((item) => item.id !== photo.id));
+      const remaining = photos.filter((item) => item.id !== photo.id);
+      onChange(remaining);
+      if (coverPhotoId === photo.id) onCoverChange(remaining[0]?.id ?? null);
     } catch {
       onToast('Could not remove that photo from this browser. Please try again.');
     } finally {
@@ -266,6 +338,9 @@ export function ListingPhotoUploadArea({
         photos={photos}
         onRemove={(photo) => void removePhoto(photo)}
         removingPhotoId={removingPhotoId}
+        onReorder={onChange}
+        coverPhotoId={coverPhotoId}
+        onSelectCover={(photo) => onCoverChange(photo.id)}
         busy={uploading}
       />
     </div>

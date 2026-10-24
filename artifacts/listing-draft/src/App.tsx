@@ -8,7 +8,7 @@ type Draft = {
   id: string; title: string; step: number; updatedAt: string; status: 'Draft' | 'Ready';
   address: string; city: string; state: string; zip: string; listingType: string; propertyType: string; price: string;
   bedrooms: string; bathrooms: string; squareFeet: string; lotSize: string; yearBuilt: string;
-  features: string[]; parking: string; headline: string; description: string; photos: ListingPhoto[];
+  features: string[]; parking: string; headline: string; description: string; photos: ListingPhoto[]; coverPhotoId: string | null;
 };
 
 const STORAGE_KEY = 'fieldnote-listing-drafts-v1';
@@ -23,7 +23,7 @@ const blankDraft = (id: string): Draft => ({
   id, title: 'Untitled property', step: 0, updatedAt: new Date().toISOString(), status: 'Draft',
   address: '', city: '', state: '', zip: '', listingType: '', propertyType: '', price: '',
   bedrooms: '', bathrooms: '', squareFeet: '', lotSize: '', yearBuilt: '',
-  features: [], parking: '', headline: '', description: '', photos: [],
+  features: [], parking: '', headline: '', description: '', photos: [], coverPhotoId: null,
 });
 const readDrafts = (): Draft[] => {
   try {
@@ -33,7 +33,11 @@ const readDrafts = (): Draft[] => {
     if (!Array.isArray(parsed)) return [];
     return parsed.map((item) => {
       const draft = item as Draft;
-      return { ...draft, photos: Array.isArray(draft.photos) ? draft.photos : [] };
+      const photos = Array.isArray(draft.photos) ? draft.photos : [];
+      const coverPhotoId = typeof draft.coverPhotoId === 'string' && photos.some((photo) => photo.id === draft.coverPhotoId)
+        ? draft.coverPhotoId
+        : photos[0]?.id ?? null;
+      return { ...draft, photos, coverPhotoId };
     });
   }
   catch { return []; }
@@ -321,6 +325,8 @@ function Features({ draft, update, onToast }: { draft: Draft; update: (patch: Pa
       draftId={draft.id}
       photos={draft.photos}
       onChange={(photos) => update({ photos })}
+      coverPhotoId={draft.coverPhotoId}
+      onCoverChange={(coverPhotoId) => update({ coverPhotoId })}
       onToast={onToast}
     />
   </>;
@@ -345,7 +351,7 @@ function Review({ draft, update }: { draft: Draft; update: (patch: Partial<Draft
     {draft.features.length > 0 && <div className="review-row"><span>Standout features</span><b>{draft.features.join(' · ')}</b></div>}
     {draft.photos.length > 0 && <>
       <div className="subheading">Property photos</div>
-      <PhotoGallery draftId={draft.id} photos={draft.photos} />
+      <PhotoGallery draftId={draft.id} photos={draft.photos} coverPhotoId={draft.coverPhotoId} />
     </>}
     <div className="ready-banner"><CheckCircle2 size={17} /><span><b>Ready means ready for you.</b> Marking this draft ready is a personal checkpoint. It does not publish or send your listing anywhere.</span></div>
   </>;

@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronRight, CircleHelp, FilePlus2, Home, MapPin, Save, Trash2 } from 'lucide-react';
+import { ListingPhotoUploadArea, PhotoGallery, type ListingPhoto } from './components/ListingPhotos';
+import { deletePhotosForDraft } from './lib/photoStorage';
 
 type Draft = {
   id: string; title: string; step: number; updatedAt: string; status: 'Draft' | 'Ready';
   address: string; city: string; state: string; zip: string; listingType: string; propertyType: string; price: string;
   bedrooms: string; bathrooms: string; squareFeet: string; lotSize: string; yearBuilt: string;
-  features: string[]; parking: string; headline: string; description: string;
+  features: string[]; parking: string; headline: string; description: string; photos: ListingPhoto[];
 };
 
 const STORAGE_KEY = 'fieldnote-listing-drafts-v1';
@@ -21,10 +23,19 @@ const blankDraft = (id: string): Draft => ({
   id, title: 'Untitled property', step: 0, updatedAt: new Date().toISOString(), status: 'Draft',
   address: '', city: '', state: '', zip: '', listingType: '', propertyType: '', price: '',
   bedrooms: '', bathrooms: '', squareFeet: '', lotSize: '', yearBuilt: '',
-  features: [], parking: '', headline: '', description: '',
+  features: [], parking: '', headline: '', description: '', photos: [],
 });
 const readDrafts = (): Draft[] => {
-  try { const saved = localStorage.getItem(STORAGE_KEY); return saved ? JSON.parse(saved) as Draft[] : []; }
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return [];
+    const parsed: unknown = JSON.parse(saved);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item) => {
+      const draft = item as Draft;
+      return { ...draft, photos: Array.isArray(draft.photos) ? draft.photos : [] };
+    });
+  }
   catch { return []; }
 };
 const completion = (d: Draft) => {
@@ -91,7 +102,16 @@ function ListingWorkspace() {
         : item.title,
     } : item));
   };
-  const removeDraft = (id: string) => {
+  const removeDraft = async (id: string) => {
+    const removedDraft = drafts.find((item) => item.id === id);
+    if (removedDraft?.photos.length) {
+      try {
+        await deletePhotosForDraft(id);
+      } catch {
+        setToast('Could not remove this draft’s photos from this browser. Please try again.');
+        return;
+      }
+    }
     setDrafts((current) => current.filter((item) => item.id !== id));
     setDeleteId(null);
     if (activeId === id) setLocation('/');
@@ -204,7 +224,7 @@ function ListingWorkspace() {
               <section className="step-content" key={currentStep} aria-live="polite">
                 {currentStep === 0 && <Basics draft={draft} update={updateDraft} />}
                 {currentStep === 1 && <Details draft={draft} update={updateDraft} />}
-                {currentStep === 2 && <Features draft={draft} update={updateDraft} />}
+                {currentStep === 2 && <Features draft={draft} update={updateDraft} onToast={setToast} />}
                 {currentStep === 3 && <Review draft={draft} update={updateDraft} />}
                 <div className="editor-footer">
                   <span className="footer-note">Your draft stays in this browser.</span>
@@ -286,7 +306,7 @@ function Details({ draft, update }: { draft: Draft; update: (patch: Partial<Draf
     </div>
   </>;
 }
-function Features({ draft, update }: { draft: Draft; update: (patch: Partial<Draft>) => void }) {
+function Features({ draft, update, onToast }: { draft: Draft; update: (patch: Partial<Draft>) => void; onToast: (message: string) => void }) {
   const toggle = (feature: string) => update({ features: draft.features.includes(feature) ? draft.features.filter((item) => item !== feature) : [...draft.features, feature] });
   return <>
     <div className="section-kicker">Step 03 / 04</div><h2 className="section-title">Give the good things their due.</h2><p className="section-desc">Choose the features that make this property feel like somewhere to be.</p>
@@ -297,6 +317,12 @@ function Features({ draft, update }: { draft: Draft; update: (patch: Partial<Dra
     })}</div>
     <div className="subheading">Parking</div>
     <div className="choice-row" role="group" aria-label="Parking options">{['No dedicated parking', '1-car garage', '2-car garage', 'Carport', 'Off-street parking'].map((value) => <button type="button" key={value} className={`choice-btn ${draft.parking === value ? 'selected' : ''}`} onClick={() => update({ parking: draft.parking === value ? '' : value })} aria-pressed={draft.parking === value} data-testid={`button-parking-${value.toLowerCase().replaceAll(' ', '-')}`}>{value}</button>)}</div>
+    <ListingPhotoUploadArea
+      draftId={draft.id}
+      photos={draft.photos}
+      onChange={(photos) => update({ photos })}
+      onToast={onToast}
+    />
   </>;
 }
 function Review({ draft, update }: { draft: Draft; update: (patch: Partial<Draft>) => void }) {
@@ -317,6 +343,10 @@ function Review({ draft, update }: { draft: Draft; update: (patch: Partial<Draft
     </div>
     <div className="review-card" style={{ marginTop: 11 }}><div className="review-label">Headline</div><div className="review-value">{draft.headline || 'Your headline will appear here'}</div></div>
     {draft.features.length > 0 && <div className="review-row"><span>Standout features</span><b>{draft.features.join(' · ')}</b></div>}
+    {draft.photos.length > 0 && <>
+      <div className="subheading">Property photos</div>
+      <PhotoGallery draftId={draft.id} photos={draft.photos} />
+    </>}
     <div className="ready-banner"><CheckCircle2 size={17} /><span><b>Ready means ready for you.</b> Marking this draft ready is a personal checkpoint. It does not publish or send your listing anywhere.</span></div>
   </>;
 }

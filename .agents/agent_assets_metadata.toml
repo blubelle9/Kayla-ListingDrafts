@@ -14,3 +14,9 @@ mtime_ms = 1792798633085
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:2615d343-27bb-4c33-9d30-679c600ac2f4/8c7baa7b-337e-4dbd-a113-e7ebd38878bf/cb11cc8f-1345-4b60-b9c1-af4d471f94dc"
 storage_version_token = "1792798633753267"
 content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+
+[[outputs]]
+id = "aqLecH9BQjI0t9AmeCdKR"
+uri = "file://.local/outputs/Fieldnote-Overview.pdf"
+type = "pdf"
+title = "Fieldnote Overview.pdf"
